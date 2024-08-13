@@ -14,7 +14,10 @@
         />
       </svg>
     </div>
-    <button @click="changeColor">ROT</button>
+    <button @click="changeColor('red')">ROT</button>
+    <button @click="changeColor('blue')">Blau</button>
+    <button @click="changeColor('yellow')">Gelb</button>
+    <input type="number" id="numberInput" value="1" />
   </div>
 </template>
 
@@ -25,7 +28,8 @@ export default {
       isDrawing: false,
       points: [],
       shapes: [],
-      svgPoints: []
+      svgPoints: [],
+      choosenShapeNumber: 0
     }
   },
   computed: {
@@ -34,8 +38,10 @@ export default {
     }
   },
   methods: {
-    changeColor() {
-      this.svgPoints[0].fill = 'red'
+    changeColor(color) {
+      const input = document.getElementById('numberInput')
+      this.choosenShapeNumber = input.value
+      this.svgPoints[this.choosenShapeNumber - 1].fill = color
     },
     startDrawing(event) {
       this.isDrawing = true
