@@ -6,7 +6,7 @@
       </svg>
       <svg class="svg-drawing-circle">
         <polyline
-          class="polyline-shape"
+          :class="{ 'polyline-shape': true, 'polyline-hovered': hoverIndex === index }"
           v-for="(shape, index) in this.svgPoints"
           :key="index"
           :points="shape.points"
@@ -44,15 +44,15 @@ export default {
   },
   methods: {
     startHoverShape(index) {
-      const shape = document.getElementById(`${index}`)
       this.svgPoints[index].stroke = 'green'
       this.shapeColorBeforHover = this.svgPoints[index].fill
       this.svgPoints[index].fill = 'green'
+      this.hoverIndex = index
     },
     endHoverShape(index) {
-      const shape = document.getElementById(`${index}`)
       this.svgPoints[index].stroke = 'black'
       this.svgPoints[index].fill = this.shapeColorBeforHover
+      this.hoverIndex = null
     },
     changeColor(color) {
       const input = document.getElementById('numberInput')
@@ -129,5 +129,17 @@ export default {
   position: absolute;
   border: 2px solid #000;
   background-color: rgba(0, 0, 255, 0.1);
+}
+.polyline-shape {
+  stroke-width: 1;
+  stroke: black;
+  transition:
+    stroke 0.3s,
+    stroke-width 0.3s;
+}
+.polyline-hovered {
+  stroke: red;
+
+  stroke-width: 10;
 }
 </style>
