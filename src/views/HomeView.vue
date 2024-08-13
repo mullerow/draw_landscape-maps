@@ -14,9 +14,10 @@
         />
       </svg>
     </div>
-    <button @click="changeColor('red')">ROT</button>
-    <button @click="changeColor('blue')">Blau</button>
-    <button @click="changeColor('yellow')">Gelb</button>
+    <button @click="changeColor('90e0ef')">LEVEL 1</button>
+    <button @click="changeColor('00b4d8')">LEVEL 2</button>
+    <button @click="changeColor('0077b6')">LEVEL 3</button>
+    <button @click="changeColor('03045e')">LEVEL 4</button>
     <input type="number" id="numberInput" value="1" />
   </div>
 </template>
@@ -41,7 +42,7 @@ export default {
     changeColor(color) {
       const input = document.getElementById('numberInput')
       this.choosenShapeNumber = input.value
-      this.svgPoints[this.choosenShapeNumber - 1].fill = color
+      this.svgPoints[this.choosenShapeNumber - 1].fill = `#${color}`
     },
     startDrawing(event) {
       this.isDrawing = true
@@ -78,7 +79,7 @@ export default {
     createShape() {
       const svgShape = {
         points: this.points.map((point) => `${point.x},${point.y}`).join(' '),
-        fill: 'green'
+        fill: 'lightgrey'
       }
       this.svgPoints.push(svgShape)
       console.log('svgPoints:', this.svgPoints)
@@ -105,7 +106,7 @@ export default {
 .svg-drawing-circle {
   width: 100%;
   height: 100%;
-  background-color: bisque;
+  background-color: #caf0f8;
 }
 
 .shape {
