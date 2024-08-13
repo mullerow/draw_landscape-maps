@@ -6,11 +6,14 @@
       </svg>
       <svg class="svg-drawing-circle">
         <polyline
+          class="polyline-shape"
           v-for="(shape, index) in this.svgPoints"
           :key="index"
           :points="shape.points"
-          stroke="black"
+          :stroke="shape.stroke"
           :fill="shape.fill"
+          @mouseenter="startHoverShape(index)"
+          @mouseleave="endHoverShape(index)"
         />
       </svg>
     </div>
@@ -30,7 +33,8 @@ export default {
       points: [],
       shapes: [],
       svgPoints: [],
-      choosenShapeNumber: 0
+      choosenShapeNumber: 0,
+      shapeColorBeforHover: ''
     }
   },
   computed: {
@@ -39,6 +43,17 @@ export default {
     }
   },
   methods: {
+    startHoverShape(index) {
+      const shape = document.getElementById(`${index}`)
+      this.svgPoints[index].stroke = 'green'
+      this.shapeColorBeforHover = this.svgPoints[index].fill
+      this.svgPoints[index].fill = 'green'
+    },
+    endHoverShape(index) {
+      const shape = document.getElementById(`${index}`)
+      this.svgPoints[index].stroke = 'black'
+      this.svgPoints[index].fill = this.shapeColorBeforHover
+    },
     changeColor(color) {
       const input = document.getElementById('numberInput')
       this.choosenShapeNumber = input.value
@@ -79,7 +94,8 @@ export default {
     createShape() {
       const svgShape = {
         points: this.points.map((point) => `${point.x},${point.y}`).join(' '),
-        fill: 'lightgrey'
+        fill: 'lightgrey',
+        stroke: 'black'
       }
       this.svgPoints.push(svgShape)
       console.log('svgPoints:', this.svgPoints)
