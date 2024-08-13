@@ -14,6 +14,7 @@
         />
       </svg>
     </div>
+    <button @click="changeColor">ROT</button>
   </div>
 </template>
 
@@ -33,6 +34,9 @@ export default {
     }
   },
   methods: {
+    changeColor() {
+      this.svgPoints[0].fill = 'red'
+    },
     startDrawing(event) {
       this.isDrawing = true
       this.points = [{ x: event.offsetX, y: event.offsetY }]
