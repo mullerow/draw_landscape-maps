@@ -4,27 +4,15 @@
       <svg v-if="points.length > 1" class="svg-drawing">
         <polyline :points="pointsString" stroke="black" fill="none" />
       </svg>
-
-      <svg class="svg-drawing">
+      <svg class="svg-drawing-circle">
         <polyline
-          v-for="(shape, index) in this.svgpoints"
+          v-for="(shape, index) in this.svgPoints"
           :key="index"
-          :points="shape"
+          :points="shape.points"
           stroke="black"
-          fill="none"
+          :fill="shape.fill"
         />
       </svg>
-      <div
-        v-for="(shape, index) in shapes"
-        :key="index"
-        class="shape"
-        :style="{
-          left: shape.left + 'px',
-          top: shape.top + 'px',
-          width: shape.width + 'px',
-          height: shape.height + 'px'
-        }"
-      ></div>
     </div>
   </div>
 </template>
@@ -36,8 +24,7 @@ export default {
       isDrawing: false,
       points: [],
       shapes: [],
-      svgPoints: [],
-      closedCercleAmount: 0
+      svgPoints: []
     }
   },
   computed: {
@@ -76,29 +63,15 @@ export default {
       const distance = Math.sqrt(
         Math.pow(newPoint.x - firstPoint.x, 2) + Math.pow(newPoint.y - firstPoint.y, 2)
       )
-      if (distance < 5) {
-        this.closedCercleAmount += 1
-      }
       return distance < 5
     },
     createShape() {
-      /*
-      const minX = Math.min(...this.points.map((point) => point.x))
-      const minY = Math.min(...this.points.map((point) => point.y))
-      const maxX = Math.max(...this.points.map((point) => point.x))
-      const maxY = Math.max(...this.points.map((point) => point.y))
-
-      const shape = {
-        left: minX,
-        top: minY,
-        width: maxX - minX,
-        height: maxY - minY
+      const svgShape = {
+        points: this.points.map((point) => `${point.x},${point.y}`).join(' '),
+        fill: 'green'
       }
-
-      this.shapes.push(shape)
-      */
-      const svgShape = this.points.map((point) => `${point.x},${point.y}`).join(' ')
       this.svgPoints.push(svgShape)
+      console.log('svgPoints:', this.svgPoints)
       this.points = []
     }
   }
@@ -115,9 +88,14 @@ export default {
 
 .svg-drawing {
   position: absolute;
+  pointer-events: none; /* Verhindert, dass das SVG das Zeichnen blockiert */
+  width: 100%;
+  height: 500px;
+}
+.svg-drawing-circle {
   width: 100%;
   height: 100%;
-  pointer-events: none; /* Verhindert, dass das SVG das Zeichnen blockiert */
+  background-color: bisque;
 }
 
 .shape {
