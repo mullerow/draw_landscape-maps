@@ -93,20 +93,29 @@ export default {
       return distance < 5
     },
     createShape() {
+      this.points = this.removeDuplicatePoints()
+      this.fillOcupiedAreas() /////// Scanline-Algorithmus
+      const cleanedPoints = this.points //this.removeOccupiedPoints()
       const svgShape = {
-        points: this.points.map((point) => `${point.x},${point.y}`).join(' '),
+        points: cleanedPoints.map((point) => `${point.x},${point.y}`).join(' '),
         fill: 'lightgrey',
         stroke: 'black'
       }
-      this.fillOcupiedAreas()
+
       this.svgPoints.push(svgShape)
       console.log('svgPoints:', this.svgPoints)
       this.points = []
-      /////// Scanline-Algorithmus
+    },
+    removeOccupiedPoints() {
+      return this.points.filter(
+        (point) => !this.isPointOccupied(Math.round(point.x), Math.round(point.y))
+      )
+    },
+    isPointOccupied(x, y) {
+      return this.occupiedCoordinates.includes(`${x},${y}`)
     },
     fillOcupiedAreas() {
       const { minX, minY, maxX, maxY } = this.calculateBoundingBox(this.points)
-      console.log('boundingbox', minX, minY, maxX, maxY)
       for (let y = minY; y <= maxY; y++) {
         let contactPoints = []
         for (let i = 0; i < this.points.length; i++) {
@@ -116,14 +125,32 @@ export default {
           const xj = this.points[j].x
           const yj = this.points[j].y
 
-          if ((yi <= y && y < yj) || (yj <= y && y < yi)) {
-            // überprüft, ob die scan-linie (y) eine kante des polygons schneidet
-            const contactPointsX = Math.round(xi + ((y - yi) * (xj - xi)) / (yj - yi))
-            contactPoints.push(contactPointsX)
+          console.log(' this.points', this.points)
+          console.log('y yi yj xi xj', y, yi, yj, xi, xj)
+
+          // Vermeide horizontale Kanten oder Kanten, die auf der Scanlinie liegen
+          if (yi !== yj && y !== yi && y !== yj) {
+            if ((yi < y && y <= yj) || (yj < y && y <= yi)) {
+              const deltaY = y - yi
+              const deltaX = xj - xi
+              const deltaYJ = yj - yi
+              console.log('deltaY:', deltaY, 'deltaX:', deltaX, 'deltaYJ:', deltaYJ)
+
+              if (deltaYJ !== 0) {
+                const ratio = deltaY / deltaYJ
+                console.log('ratio:', ratio)
+
+                const contactPointsX = Math.round(xi + ratio * deltaX)
+                console.warn('contactPointsX', contactPointsX)
+                contactPoints.push(contactPointsX)
+              }
+            }
           }
         }
+        console.log('Points:', JSON.parse(JSON.stringify(this.points)))
         // muss von links nach rechts (aufsteigendes x sortiert werden, damit die schnittpaare zusammen sind)
         contactPoints.sort((a, b) => a - b)
+        console.log('  contactPoint', contactPoints)
 
         for (let k = 0; k < contactPoints.length; k += 2) {
           let startXcontactPoint = Math.ceil(contactPoints[k])
@@ -137,6 +164,7 @@ export default {
         }
       }
     },
+    // die boundingbox limitiert den bereich der berechnet werden muss auf die maximalen ausdehnungen des shapes um unötige recharbeiten zu vermeiden
     calculateBoundingBox(points) {
       let minX = Math.min(...points.map((p) => p.x))
       let minY = Math.min(...points.map((p) => p.y))
@@ -144,6 +172,16 @@ export default {
       let maxY = Math.max(...points.map((p) => p.y))
 
       return { minX, minY, maxX, maxY }
+    },
+    removeDuplicatePoints() {
+      const map = new Map()
+      this.points.forEach((point) => {
+        const key = `${point.x},${point.y}`
+        if (!map.has(key)) {
+          map.set(key, point)
+        }
+      })
+      return Array.from(map.values())
     }
   }
 }
