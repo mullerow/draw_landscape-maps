@@ -35,7 +35,8 @@ export default {
       svgPoints: [],
       choosenShapeNumber: 0,
       shapeColorBeforHover: '',
-      occupiedCoordinates: []
+      occupiedCoordinates: [],
+      hoverIndex: null
     }
   },
   computed: {
@@ -48,7 +49,10 @@ export default {
       this.svgPoints[index].stroke = 'green'
       this.shapeColorBeforHover = this.svgPoints[index].fill
       this.svgPoints[index].fill = 'green'
+      // das gehoverte polygon/SVG soll in den vordergrund gerückt werden, deshalb wird es nochmal an das ende der liste angefügt
       this.hoverIndex = index
+      const hoveredShape = this.svgPoints.splice(index, 1)[0]
+      this.svgPoints.push(hoveredShape)
     },
     endHoverShape(index) {
       this.svgPoints[index].stroke = 'black'
@@ -62,10 +66,27 @@ export default {
     },
     startDrawing(event) {
       this.isDrawing = true
+      const startX = event.offsetX
+      const startY = event.offsetY
       this.points = [{ x: event.offsetX, y: event.offsetY }]
 
       window.addEventListener('mousemove', this.draw)
       window.addEventListener('mouseup', this.stopDrawing)
+      const occupiedArea = this.getOccupiedShapeIndex(startX, startY)
+
+      if (occupiedArea !== null) {
+        console.log(
+          `Der Startpunkt ist bereits belegt von Shape mit Index: ${occupiedArea.shapeIndex}`
+        )
+      } else {
+        console.log('Der Startpunkt ist frei.')
+      }
+    },
+    getOccupiedShapeIndex(x, y) {
+      const occupied = this.occupiedCoordinates.find(
+        (occupied) => occupied.x === x && occupied.y === y
+      )
+      return occupied ? occupied : null
     },
     draw(event) {
       if (!this.isDrawing) return
@@ -94,7 +115,6 @@ export default {
     },
     createShape() {
       this.points = this.removeDuplicatePoints()
-
       const cleanedPoints = this.removeOccupiedPoints()
       this.fillOcupiedAreas() /////// Scanline-Algorithmus
       const svgShape = {
@@ -104,7 +124,6 @@ export default {
       }
 
       this.svgPoints.push(svgShape)
-      console.log('svgPoints:', this.svgPoints)
       this.points = []
     },
     removeOccupiedPoints() {
@@ -116,7 +135,8 @@ export default {
       return this.occupiedCoordinates.includes(`${x},${y}`)
     },
     fillOcupiedAreas() {
-      const { minY, maxY } = this.calculateBoundingBox(this.points)
+      const { minY, maxY } = this.calculateBoundingBox()
+      const shapeIndex = this.svgPoints.length
 
       for (let y = minY; y <= maxY; y++) {
         let contactPoints = []
@@ -145,17 +165,16 @@ export default {
           const xEnd = Math.floor(contactPoints[k + 1])
           for (let x = xStart; x <= xEnd; x++) {
             if (!this.occupiedCoordinates.includes(`${x},${y}`)) {
-              this.occupiedCoordinates.push(`${x},${y}`)
+              this.occupiedCoordinates.push({ x, y, shapeIndex }) //(`${x},${y}`)
             }
           }
         }
       }
     },
     // die boundingbox limitiert den bereich der berechnet werden muss auf die maximalen ausdehnungen des shapes um unötige recharbeiten zu vermeiden
-    calculateBoundingBox(points) {
-      let minY = Math.min(...points.map((p) => p.y))
-      let maxY = Math.max(...points.map((p) => p.y))
-
+    calculateBoundingBox() {
+      let minY = Math.min(...this.points.map((p) => p.y))
+      let maxY = Math.max(...this.points.map((p) => p.y))
       return { minY, maxY }
     },
     removeDuplicatePoints() {
@@ -173,10 +192,12 @@ export default {
 </script>
 
 <style>
+html {
+  background-color: #5c5c5c;
+}
 .drawing-area {
   width: 100%;
   height: 500px;
-  background-color: #f0f0f0;
   position: relative;
 }
 
@@ -189,7 +210,7 @@ export default {
 .svg-drawing-circle {
   width: 100%;
   height: 100%;
-  background-color: #caf0f8;
+  background-color: #afaeae;
 }
 
 .shape {
