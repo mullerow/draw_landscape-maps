@@ -50,6 +50,7 @@ export default {
       this.shapeColorBeforHover = this.svgPoints[index].fill
       this.svgPoints[index].fill = 'green'
       // das gehoverte polygon/SVG soll in den vordergrund gerückt werden, deshalb wird es nochmal an das ende der liste angefügt
+
       this.hoverIndex = index
       const hoveredShape = this.svgPoints.splice(index, 1)[0]
       this.svgPoints.push(hoveredShape)
@@ -116,23 +117,33 @@ export default {
     createShape() {
       this.points = this.removeDuplicatePoints()
       const cleanedPoints = this.removeOccupiedPoints()
-      this.fillOcupiedAreas() /////// Scanline-Algorithmus
-      const svgShape = {
-        points: cleanedPoints.map((point) => `${point.x},${point.y}`).join(' '),
-        fill: 'lightgrey',
-        stroke: 'black'
+
+      // Nur wenn es nach der Bereinigung noch Punkte gibt, den Scanline-Algorithmus anwenden
+      if (cleanedPoints.length > 0) {
+        this.points = cleanedPoints // Aktualisiere this.points auf die bereinigten Punkte
+        this.fillOcupiedAreas() /////// Scanline-Algorithmus
+
+        const svgShape = {
+          points: cleanedPoints.map((point) => `${point.x},${point.y}`).join(' '),
+          fill: 'lightgrey',
+          stroke: 'black'
+        }
+
+        this.svgPoints.push(svgShape)
       }
 
-      this.svgPoints.push(svgShape)
+      console.log('this.occupiedCoordinates', this.occupiedCoordinates)
       this.points = []
     },
+
     removeOccupiedPoints() {
       return this.points.filter(
         (point) => !this.isPointOccupied(Math.round(point.x), Math.round(point.y))
       )
     },
+
     isPointOccupied(x, y) {
-      return this.occupiedCoordinates.includes(`${x},${y}`)
+      return this.occupiedCoordinates.some((coord) => coord.x === x && coord.y === y)
     },
     fillOcupiedAreas() {
       const { minY, maxY } = this.calculateBoundingBox()
